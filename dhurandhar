@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>DHURANDHAR Commerce Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:#F0F4FA;color:#1C2B4A;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes cardFlip{from{opacity:0;transform:perspective(600px) rotateY(-16deg) scale(0.94)}to{opacity:1;transform:perspective(600px) rotateY(0) scale(1)}}
+@keyframes popIn{0%{opacity:0;transform:scale(0.93)}100%{opacity:1;transform:scale(1)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* ══ TWO-PANE SHELL ══ */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* LEFT PANE */
+.pane-left{
+  width:280px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  background:white;
+  border-right:1px solid #DDE3EE;
+  height:100vh;
+  overflow:hidden;
+}
+.pl-header{
+  padding:14px 16px 12px;
+  border-bottom:1px solid #EEF1F7;
+  display:flex;align-items:center;gap:9px;
+  flex-shrink:0;
+}
+.logo-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#8B1A00,#C83200);display:flex;align-items:center;justify-content:center;color:#FFD700;font-size:11px;font-weight:800;box-shadow:0 3px 8px rgba(139,26,0,0.3);font-family:'JetBrains Mono',monospace}
+.logo-name{font-size:12px;font-weight:800;color:#1C2B4A;letter-spacing:0.3px}
+.logo-sub{font-size:7px;color:#8B1A00;letter-spacing:2px;font-family:'JetBrains Mono',monospace}
+
+.pl-body{
+  flex:1;overflow-y:auto;padding:16px;
+  display:flex;flex-direction:column;align-items:center;
+}
+.pl-body::-webkit-scrollbar{width:3px}
+.pl-body::-webkit-scrollbar-thumb{background:#E0E6F0;border-radius:2px}
+
+/* Mascot in left pane */
+.mascot-wrap{text-align:center;margin-bottom:14px;animation:float 3.5s ease-in-out infinite}
+.mascot-label{font-size:13px;font-weight:800;color:#1C2B4A;margin-top:6px;letter-spacing:0.3px}
+.mascot-label span{color:#8B1A00}
+.mascot-tag{font-size:9px;color:#8FA3C0;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-top:2px}
+
+/* Left pane pre-send welcome text */
+.pl-welcome{font-size:12px;color:#5A7090;line-height:1.65;text-align:center;padding:0 4px;margin-bottom:14px}
+.pl-hint{font-size:10px;color:#A0B4C8;font-family:'JetBrains Mono',monospace;text-align:center;line-height:1.5}
+
+/* Left pane post-send: query display + status */
+.query-display{
+  width:100%;background:#FFF5F0;border:1px solid #FFD0C0;
+  border-radius:12px;padding:12px 14px;margin-bottom:14px;
+  animation:fadeUp 0.4s ease;
+}
+.query-display-lbl{font-size:9px;font-weight:700;color:#8B1A00;letter-spacing:2px;margin-bottom:6px;font-family:'JetBrains Mono',monospace}
+.query-display-txt{font-size:12px;color:#3A1A08;line-height:1.6;font-weight:500}
+
+.status-box{
+  width:100%;background:#F5F7FA;border:1px solid #DDE3EE;
+  border-radius:10px;padding:10px 12px;
+  animation:fadeUp 0.4s ease;
+}
+.status-lbl{font-size:8px;font-weight:700;color:#8FA3C0;letter-spacing:2px;margin-bottom:5px;font-family:'JetBrains Mono',monospace}
+.status-stage{font-size:13px;font-weight:700;color:#1C2B4A}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8B1A00;margin-right:6px;animation:pulse 1.4s ease-in-out infinite}
+
+/* LEFT FOOTER — single input */
+.pl-footer{
+  flex-shrink:0;padding:12px 14px;
+  border-top:1px solid #EEF1F7;
+  background:white;
+}
+.input-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input{
+  flex:1;border:1.5px solid #C8D4E8;border-radius:12px;
+  padding:10px 12px;font-size:13px;color:#1C2B4A;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:white;outline:none;resize:none;
+  line-height:1.5;max-height:90px;
+  box-shadow:0 2px 6px rgba(28,43,74,0.07);
+  transition:border-color 0.2s;
+}
+.chat-input:focus{border-color:#8B1A00}
+.chat-input:disabled{background:#F5F7FA;color:#A0B4C8;cursor:not-allowed}
+.send-btn{
+  width:38px;height:38px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,#8B1A00,#C83200);
+  color:#FFD700;cursor:pointer;flex-shrink:0;
+  box-shadow:0 3px 8px rgba(139,26,0,0.3);
+  transition:transform 0.15s;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.send-btn:active{transform:scale(0.93)}
+.send-btn:disabled{opacity:0.4;cursor:default}
+
+/* RIGHT PANE */
+.pane-right{
+  flex:1;display:flex;flex-direction:column;
+  overflow:hidden;background:#F0F4FA;
+}
+.pr-stage-bar{
+  flex-shrink:0;padding:10px 20px;
+  border-bottom:1px solid #DDE3EE;
+  background:rgba(240,244,250,0.97);backdrop-filter:blur(12px);
+  display:flex;align-items:center;gap:4px;
+}
+.sp{font-size:8px;font-weight:600;letter-spacing:0.5px;padding:3px 8px;border-radius:20px;font-family:'JetBrains Mono',monospace;color:#9AABC0;background:#E8EDF5;border:1px solid #DDE3EE;transition:all 0.5s;white-space:nowrap}
+.sp.active{color:#8B1A00;background:#FFF0E8;border-color:#FFB899}
+.sp.done{color:#00875A;background:#E6F7F1;border-color:#A8DECA}
+.ss{width:10px;height:1.5px;background:#DDE3EE;flex-shrink:0;transition:background 0.5s}
+.ss.done{background:#00875A}
+
+.pr-feed{flex:1;overflow-y:auto;padding:20px 22px 40px}
+.pr-feed::-webkit-scrollbar{width:4px}
+.pr-feed::-webkit-scrollbar-track{background:transparent}
+.pr-feed::-webkit-scrollbar-thumb{background:#C8D4E8;border-radius:2px}
+
+/* Right pane welcome */
+.pr-welcome{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;text-align:center;padding:40px 30px;
+  color:#8FA3C0;
+}
+.pr-welcome-icon{font-size:36px;margin-bottom:16px;opacity:0.5}
+.pr-welcome-txt{font-size:14px;color:#8FA3C0;line-height:1.7;max-width:280px}
+
+/* ══ CHAT MESSAGES ══ */
+.msg{display:flex;gap:9px;margin-bottom:14px;animation:fadeUp 0.4s ease;max-width:640px}
+.msg.user{flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+.av.ag{background:linear-gradient(135deg,#8B1A00,#C83200);color:#FFD700;box-shadow:0 2px 6px rgba(139,26,0,0.25)}
+.av.ok{background:linear-gradient(135deg,#00875A,#006644);color:white;box-shadow:0 2px 6px rgba(0,135,90,0.22)}
+.av.us{background:#1C2B4A;color:white}
+.bbl{padding:10px 14px;border-radius:14px;max-width:86%;font-size:13px;line-height:1.72}
+.bbl.ag{background:white;border:1px solid #DDE3EE;border-radius:3px 14px 14px 14px;color:#2C3E5A;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 8px rgba(28,43,74,0.06)}
+.bbl.us{background:linear-gradient(135deg,#8B1A00,#B02800);color:white;border-radius:14px 3px 14px 14px;font-size:13px;font-weight:500;box-shadow:0 2px 10px rgba(139,26,0,0.25)}
+.cur{animation:blink 0.7s step-end infinite;color:#8B1A00}
+
+/* Section label */
+.sec{font-size:8px;font-weight:700;color:#8FA3C0;letter-spacing:2.5px;margin:14px 0 10px 2px;font-family:'JetBrains Mono',monospace;animation:fadeUp 0.4s ease}
+
+/* ══ PHONE GRID ══ */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:6px;max-width:640px}
+.pc{background:white;border-radius:13px;padding:13px;border:2px solid #DDE3EE;box-shadow:0 2px 8px rgba(28,43,74,0.06);transition:all 0.4s;position:relative;cursor:pointer;animation:fadeUp 0.4s ease both;-webkit-tap-highlight-color:transparent}
+.pc.sel{border-color:#8B1A00;box-shadow:0 5px 18px rgba(139,26,0,0.18);transform:translateY(-3px)}
+.pc-badge{position:absolute;top:8px;right:8px;background:#8B1A00;color:#FFD700;font-size:8px;font-weight:700;padding:2px 6px;border-radius:20px}
+.sel-ring{display:none;position:absolute;top:8px;left:8px;width:18px;height:18px;border-radius:50%;background:#8B1A00;color:#FFD700;font-size:9px;font-weight:700;align-items:center;justify-content:center}
+.pc.sel .sel-ring{display:flex}
+.pc-em{font-size:20px;margin-bottom:7px}
+.pc-nm{font-size:11px;font-weight:700;color:#1C2B4A;margin-bottom:3px;line-height:1.4}
+.pc-mrp{font-size:9px;color:#A0B4C8;text-decoration:line-through;font-family:'JetBrains Mono',monospace}
+.pc-pr{font-size:15px;font-weight:800}
+.pc-of{font-size:9px;color:#C05000;font-weight:600;margin-top:4px;line-height:1.4}
+.sb{margin-top:8px;height:3px;background:#EEF1F7;border-radius:10px}
+.sf{height:100%;border-radius:10px;width:0%;transition:width 1.4s ease}
+.st{font-size:8px;color:#A0B4C8;margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+/* ══ CONFIRM BTN ══ */
+.conf-btn{width:100%;max-width:640px;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;color:#FFD700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(135deg,#8B1A00,#C83200);box-shadow:0 4px 16px rgba(139,26,0,0.28);margin-top:10px;margin-bottom:16px;animation:fadeUp 0.4s ease;transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
+.conf-btn:active{transform:scale(0.98)}
+.conf-btn:disabled{opacity:0.45;cursor:default}
+
+/* ══ 3-CARD GRID ══ */
+.card3-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:8px;max-width:640px;animation:fadeUp 0.5s ease}
+.ccard{background:white;border-radius:13px;padding:14px;border:2px solid #DDE3EE;box-shadow:0 2px 8px rgba(28,43,74,0.06);transition:all 0.4s;cursor:pointer;position:relative;overflow:visible;animation:fadeUp 0.4s ease both;-webkit-tap-highlight-color:transparent}
+.ccard.ncs{border-color:#C9A84C;background:linear-gradient(160deg,#FFFDF5,white)}
+.ccard.sel{border-color:#8B1A00;box-shadow:0 5px 18px rgba(139,26,0,0.18);transform:translateY(-3px)}
+.ccard.ncs.sel{border-color:#C9A84C;box-shadow:0 5px 20px rgba(201,168,76,0.28);transform:translateY(-3px)}
+.top-badge{position:absolute;top:-1px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;padding:3px 10px;border-radius:0 0 10px 10px;white-space:nowrap;letter-spacing:0.3px}
+.tbg{background:linear-gradient(135deg,#C9A84C,#E8C060);color:#5A3A00}
+.ccard-type{display:inline-block;font-size:8px;font-weight:700;padding:2px 7px;border-radius:8px;margin-bottom:7px;margin-top:3px}
+.ccard-bank{font-size:9px;font-weight:600;color:#8FA3C0;margin-bottom:2px}
+.ccard-name{font-size:11px;font-weight:700;color:#1C2B4A;margin-bottom:8px;line-height:1.3}
+.ccard-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 7px;border-radius:7px;margin-bottom:3px;background:#F5F7FA;gap:4px}
+.ccard-rl{font-size:8px;color:#5A7090;font-weight:500;flex-shrink:0;line-height:1.4}
+.ccard-rv{font-size:8px;font-weight:700;text-align:right;line-height:1.4}
+.ccard-total{margin-top:7px;padding:8px 7px;border-radius:9px;text-align:center}
+.ccard-tl{font-size:7px;font-weight:700;color:#8FA3C0;letter-spacing:1px;margin-bottom:2px}
+.ccard-tv{font-size:16px;font-weight:800}
+
+/* ══ APPLY STEPS ══ */
+.astep{display:flex;align-items:center;gap:11px;padding:11px 14px;margin-bottom:7px;background:white;border-radius:11px;border:1px solid #DDE3EE;box-shadow:0 1px 5px rgba(28,43,74,0.05);transition:opacity 0.5s;max-width:640px}
+.astep.dim{opacity:0.3}
+.dot{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid #DDE3EE;background:#F0F4FA;transition:all 0.4s}
+.dot.done{background:#E6F7F1;border-color:#00875A;color:#00875A;font-size:13px}
+.dot.active{background:#FFF0E8;border-color:#8B1A00}
+.dl{font-size:13px;font-weight:600;color:#1C2B4A}
+.ds{font-size:10px;color:#8FA3C0;font-family:'JetBrains Mono',monospace;margin-top:1px}
+
+/* ══ VIRTUAL CARD ══ */
+.vcard-outer{max-width:280px;margin:18px 0}
+.vcard{border-radius:16px;padding:20px 18px 16px;background:linear-gradient(135deg,#1a3060,#0d1e45,#1a2e58);border:1px solid rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(0,0,0,0.22);position:relative;overflow:hidden;animation:cardFlip 0.8s cubic-bezier(0.34,1.4,0.64,1)}
+.vcard-glow{position:absolute;top:-22px;right:-22px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.18),transparent)}
+.vc-bank{font-size:10px;font-weight:700;color:#C9A84C;letter-spacing:1.5px}
+.vc-num{font-size:13px;color:#7A9ABB;letter-spacing:3px;margin:14px 0;font-family:'JetBrains Mono',monospace}
+.vc-bot{display:flex;justify-content:space-between;align-items:flex-end}
+.vc-fl{font-size:7px;color:#4A6880;letter-spacing:2px;margin-bottom:2px}
+.vc-fv{font-size:11px;color:#C0D0E0;font-weight:700}
+.vc-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#C9A84C,#FFE082,#C9A84C)}
+
+/* ══ OTP ══ */
+.otp-card{background:white;border-radius:16px;border:1.5px solid #DDE3EE;overflow:hidden;box-shadow:0 6px 28px rgba(28,43,74,0.1);animation:popIn 0.5s cubic-bezier(0.34,1.4,0.64,1);margin-bottom:10px;max-width:480px}
+.otp-hdr{background:#1A1F71;padding:14px 18px;display:flex;align-items:center;gap:11px}
+.mc-r{width:24px;height:24px;border-radius:50%;background:#EB001B;flex-shrink:0}
+.mc-y{width:24px;height:24px;border-radius:50%;background:#F79E1B;opacity:0.95;margin-left:-8px;flex-shrink:0}
+.otp-ht{font-size:12px;font-weight:700;color:white}
+.otp-hs{font-size:9px;color:rgba(255,255,255,0.6);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.otp-body{padding:18px}
+.otp-merch{display:flex;justify-content:space-between;padding:9px 12px;background:#F5F7FA;border-radius:10px;margin-bottom:14px;border:1px solid #EEF1F7}
+.otp-ml{font-size:9px;color:#8FA3C0;font-weight:600;margin-bottom:2px}
+.otp-mv{font-size:13px;font-weight:700;color:#1C2B4A}
+.otp-info{font-size:12px;color:#3A5070;line-height:1.65;margin-bottom:14px}
+.otp-info strong{color:#1C2B4A}
+.otp-fields{display:flex;gap:7px;justify-content:center;margin-bottom:12px}
+.otp-box{width:38px;height:46px;border:2px solid #C8D4E8;border-radius:10px;font-size:20px;font-weight:700;color:#1C2B4A;text-align:center;font-family:'JetBrains Mono',monospace;background:white;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+.otp-box:focus{border-color:#8B1A00;box-shadow:0 0 0 3px rgba(139,26,0,0.1)}
+.otp-box.filled{border-color:#8B1A00;background:#FFF5F0}
+.otp-hint{font-size:10px;color:#8FA3C0;text-align:center;margin-bottom:14px;font-family:'JetBrains Mono',monospace}
+.otp-hint a{color:#8B1A00;font-weight:600;text-decoration:none}
+.otp-sub{width:100%;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;color:white;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(135deg,#1A1F71,#0D1255);box-shadow:0 3px 14px rgba(26,31,113,0.28);transition:transform 0.15s;-webkit-tap-highlight-color:transparent}
+.otp-sub:active{transform:scale(0.98)}
+.otp-sub:disabled{opacity:0.45;cursor:default}
+.otp-foot{padding:10px 18px;border-top:1px solid #EEF1F7;display:flex;align-items:center;gap:6px;background:#FAFBFD}
+.otp-fl{font-size:9px;color:#8FA3C0;font-family:'JetBrains Mono',monospace}
+.mc-badge{margin-left:auto;display:flex;align-items:center;gap:3px;font-size:8px;color:#1A1F71;font-weight:700;letter-spacing:0.5px}
+
+/* ══ CHECKOUT ROWS ══ */
+.crow{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;margin-bottom:6px;border-radius:11px;background:white;border:1px solid #DDE3EE;box-shadow:0 1px 4px rgba(28,43,74,0.05);transition:opacity 0.5s;max-width:640px}
+.cl{font-size:12px;color:#5A7090;font-family:'JetBrains Mono',monospace}
+.cv{font-size:12px;font-weight:700}
+
+/* ══ SUMMARY ══ */
+.summary{background:white;border-radius:16px;overflow:hidden;border:1.5px solid #A8DECA;box-shadow:0 6px 28px rgba(0,135,90,0.1);animation:popIn 0.6s cubic-bezier(0.34,1.4,0.64,1);margin-top:4px;max-width:640px}
+.sum-h{background:linear-gradient(135deg,#00875A,#006644);padding:18px 20px;display:flex;align-items:center;gap:11px}
+.sum-ck{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px}
+.sum-t{font-size:17px;font-weight:800;color:white}
+.sum-s{font-size:10px;color:rgba(255,255,255,0.7);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:16px 18px 0}
+.stat{text-align:center;padding:12px 6px;background:#F5F7FA;border-radius:11px;border:1px solid #EEF1F7}
+.sl{font-size:8px;font-weight:700;color:#8FA3C0;letter-spacing:2px;margin-bottom:5px;font-family:'JetBrains Mono',monospace}
+.sv{font-size:16px;font-weight:800}
+.tot{margin:12px 18px 16px;padding:11px 14px;border-radius:11px;background:#F0F4FA;border:1px solid #DDE3EE;display:flex;justify-content:space-between;align-items:center}
+.tl{font-size:11px;color:#5A7090;font-family:'JetBrains Mono',monospace}
+.tv{font-size:14px;font-weight:800;color:#00875A}
+
+.hidden{display:none}
+
+/* ══ MOBILE LAYOUT ══ */
+@media(max-width:700px){
+  .app{flex-direction:column}
+  .pane-left{width:100%;height:auto;flex-direction:row;align-items:center;gap:8px;padding:10px 14px;border-right:none;border-bottom:1px solid #DDE3EE}
+  .pl-header{border:none;padding:0;flex-shrink:0}
+  .pl-body{display:none}
+  .pl-footer{flex:1;padding:0;border:none}
+  .pane-right{flex:1;min-height:0;overflow:hidden}
+  .pgrid,.card3-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══════════════════════════════════ -->
+  <!--        LEFT PANE                  -->
+  <!-- ══════════════════════════════════ -->
+  <div class="pane-left">
+
+    <div class="pl-header">
+      <div class="logo-icon">DH</div>
+      <div>
+        <div class="logo-name">DHURANDHAR</div>
+        <div class="logo-sub">COMMERCE AGENT</div>
+      </div>
+    </div>
+
+    <div class="pl-body" id="plBody">
+      <!-- Mascot -->
+      <div class="mascot-wrap">
+        <svg width="76" height="108" viewBox="0 0 90 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="45" cy="124" rx="22" ry="4" fill="#1C2B4A" opacity="0.12"/>
+          <path d="M18 70 Q14 80 12 110 L78 110 Q76 80 72 70 Q60 62 45 62 Q30 62 18 70Z" fill="#1C2B4A"/>
+          <path d="M40 62 L45 80 L50 62" fill="none" stroke="#8B1A00" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40" y1="62" x2="50" y2="62" stroke="#8B1A00" stroke-width="1" opacity="0.6"/>
+          <line x1="38" y1="72" x2="36" y2="108" stroke="#2C3E5A" stroke-width="0.8" opacity="0.5"/>
+          <line x1="52" y1="72" x2="54" y2="108" stroke="#2C3E5A" stroke-width="0.8" opacity="0.5"/>
+          <path d="M18 70 Q8 80 10 100 Q14 102 18 100 Q20 82 24 74Z" fill="#1C2B4A"/>
+          <ellipse cx="13" cy="102" rx="5" ry="6" fill="#C8956A" transform="rotate(-10 13 102)"/>
+          <path d="M72 70 Q82 78 80 98 Q76 100 72 98 Q70 80 66 74Z" fill="#1C2B4A"/>
+          <ellipse cx="77" cy="100" rx="5" ry="6" fill="#C8956A" transform="rotate(10 77 100)"/>
+          <rect x="40" y="54" width="10" height="12" rx="5" fill="#C8956A"/>
+          <ellipse cx="45" cy="38" rx="18" ry="20" fill="#C8956A"/>
+          <path d="M27 32 Q28 16 45 14 Q62 16 63 32 Q58 22 45 20 Q32 22 27 32Z" fill="#1A1008"/>
+          <path d="M27 32 Q24 28 26 38 Q28 34 30 32Z" fill="#1A1008"/>
+          <path d="M63 32 Q66 28 64 38 Q62 34 60 32Z" fill="#1A1008"/>
+          <path d="M31 46 Q33 58 45 60 Q57 58 59 46 Q54 54 45 55 Q36 54 31 46Z" fill="#1A1008" opacity="0.85"/>
+          <path d="M38 44 Q42 47 45 46 Q48 47 52 44" stroke="#1A1008" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.9"/>
+          <ellipse cx="38" cy="36" rx="4" ry="3.5" fill="white"/>
+          <ellipse cx="52" cy="36" rx="4" ry="3.5" fill="white"/>
+          <ellipse cx="39" cy="36" rx="2.2" ry="2.2" fill="#1A1008"/>
+          <ellipse cx="53" cy="36" rx="2.2" ry="2.2" fill="#1A1008"/>
+          <circle cx="40" cy="35" r="0.7" fill="white"/>
+          <circle cx="54" cy="35" r="0.7" fill="white"/>
+          <path d="M34 31 Q38 29 42 31" stroke="#1A1008" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <path d="M48 31 Q52 29 56 31" stroke="#1A1008" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <line x1="33" y1="42" x2="35" y2="44" stroke="#A06040" stroke-width="0.9" stroke-linecap="round" opacity="0.7"/>
+          <circle cx="27" cy="38" r="2" fill="#C9A84C" opacity="0.85"/>
+          <rect x="24" y="88" width="42" height="5" rx="2" fill="#2C3E5A"/>
+          <rect x="41" y="88" width="8" height="5" rx="1" fill="#C9A84C"/>
+          <ellipse cx="30" cy="112" rx="12" ry="5" fill="#111820"/>
+          <ellipse cx="60" cy="112" rx="12" ry="5" fill="#111820"/>
+        </svg>
+        <div class="mascot-label">DHURANDHAR<br><span>Commerce Agent</span></div>
+        <div class="mascot-tag">Expert. Undercover. Best Deal.</div>
+      </div>
+
+      <!-- Pre-send: instructions -->
+      <div id="plWelcome">
+        <p class="pl-welcome">Describe the phone you are looking for. I will scan the market, find the best deal, and handle the payment end to end.</p>
+        <p class="pl-hint">&#8595; Type your query below and tap send</p>
+      </div>
+
+      <!-- Post-send: query + status (hidden initially) -->
+      <div id="plQuery" class="hidden">
+        <div class="query-display">
+          <div class="query-display-lbl">YOUR REQUEST</div>
+          <div class="query-display-txt" id="queryTxt"></div>
+        </div>
+        <div class="status-box">
+          <div class="status-lbl">MISSION STATUS</div>
+          <div class="status-stage" id="statusStage"><span class="status-dot"></span>In progress...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pl-footer">
+      <div class="input-row">
+        <textarea class="chat-input" id="inp" rows="2" placeholder="e.g. Premium Android, great camera, under Rs.1.3 lakh..." oninput="resize(this)" onkeydown="onKey(event)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="send()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!--        RIGHT PANE                 -->
+  <!-- ══════════════════════════════════ -->
+  <div class="pane-right">
+
+    <!-- Stage bar (hidden until flow starts) -->
+    <div class="pr-stage-bar hidden" id="stages">
+      <div class="sp" id="s1">SEARCH</div><div class="ss" id="sep1"></div>
+      <div class="sp" id="s2">SELECT</div><div class="ss" id="sep2"></div>
+      <div class="sp" id="s3">CARD</div><div class="ss" id="sep3"></div>
+      <div class="sp" id="s4">VERIFY</div><div class="ss" id="sep4"></div>
+      <div class="sp" id="s5">DONE</div>
+    </div>
+
+    <!-- Feed -->
+    <div class="pr-feed" id="feed">
+      <div class="pr-welcome" id="prWelcome">
+        <div class="pr-welcome-icon">&#128269;</div>
+        <div class="pr-welcome-txt">Your agentic shopping flow will appear here. Type your request on the left to begin.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   AUDIO CHIMES — Web Audio API
+══════════════════════════════════════ */
+var audioCtx = null;
+
+function ensureAudio(){
+  if(!audioCtx){
+    try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){audioCtx=null;}
+  }
+  if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playNote(ctx,freq,t,dur,vol){
+  try{
+    var osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.type='sine';osc.frequency.setValueAtTime(freq,t);
+    gain.gain.setValueAtTime(0.001,t);
+    gain.gain.linearRampToValueAtTime(vol||0.1,t+0.025);
+    gain.gain.setValueAtTime(vol||0.1,t+0.06);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t);osc.stop(t+dur+0.08);
+  }catch(e){}
+}
+
+var CHIMES={
+  scan:     [[523,0,0.55,0.08],[659,0.22,0.65,0.09]],
+  phonePick:[[659,0,0.30,0.11],[784,0.16,0.30,0.12],[1047,0.32,0.55,0.10]],
+  cardReveal:[[523,0,0.28,0.08],[659,0.16,0.28,0.09],[784,0.32,0.50,0.08]],
+  cardPick: [[659,0,0.24,0.10],[784,0.14,0.24,0.11],[880,0.28,0.24,0.11],[1047,0.42,0.55,0.12]],
+  cardIssued:[[523,0,0.22,0.09],[659,0.13,0.22,0.10],[784,0.26,0.22,0.11],[1047,0.39,0.22,0.12],[1319,0.52,0.65,0.10]],
+  otpOk:    [[784,0,0.22,0.11],[1047,0.16,0.26,0.13],[1319,0.34,0.60,0.11]],
+  complete: [[523,0,0.20,0.09],[659,0.14,0.20,0.10],[784,0.28,0.20,0.11],[1047,0.42,0.20,0.12],[1319,0.56,0.20,0.11],[1047,0.70,0.70,0.09]]
+};
+
+function chime(type){
+  var ctx=ensureAudio();
+  if(!ctx)return;
+  var notes=CHIMES[type]||CHIMES.scan;
+  var now=ctx.currentTime;
+  notes.forEach(function(n){playNote(ctx,n[0],now+n[1],n[2],n[3]);});
+}
+
+/* ══════════════════════════════════════
+   APP STATE & HELPERS
+══════════════════════════════════════ */
+var feed=document.getElementById('feed'),
+    stEl=document.getElementById('stages'),
+    inp=document.getElementById('inp'),
+    sBtn=document.getElementById('sendBtn');
+var selPhone=null,selCardIdx=null;
+var SAMPLE='Premium Android flagship, outstanding camera, budget around Rs.1.3 lakh. Best deal available today?';
+var wait=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
+
+function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,90)+'px';}
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
+function goBottom(){setTimeout(function(){feed.scrollTop=feed.scrollHeight;},80);}
+
+function setStage(n){
+  var labels=['','SEARCH','SELECT','CARD','VERIFY','DONE'];
+  for(var i=1;i<=5;i++){
+    document.getElementById('s'+i).className='sp'+(i<n?' done':(i===n?' active':''));
+    if(i<5)document.getElementById('sep'+i).className='ss'+(i<n?' done':'');
+  }
+  var stageNames=['','Scanning market','Selecting phone','Choosing card','Verifying payment','Order complete'];
+  var el=document.getElementById('statusStage');
+  if(el) el.innerHTML='<span class="status-dot'+(n===5?' hidden':'')+'"></span>'+stageNames[n];
+}
+
+function lock(){inp.disabled=true;sBtn.disabled=true;}
+
+function showPostSend(txt){
+  document.getElementById('plWelcome').classList.add('hidden');
+  document.getElementById('plQuery').classList.remove('hidden');
+  document.getElementById('queryTxt').textContent=txt;
+}
+
+function userBubble(txt){
+  var d=document.createElement('div');d.className='msg user';
+  d.innerHTML='<div class="av us">V</div><div class="bbl us">'+txt+'</div>';
+  feed.appendChild(d);goBottom();
+}
+
+function tw(el,text,spd){
+  return new Promise(function(res){
+    var i=0;
+    var t=setInterval(function(){
+      i++;
+      el.innerHTML=text.slice(0,i)+(i<text.length?'<span class="cur">&#9610;</span>':'');
+      if(i>=text.length){clearInterval(t);res();}
+    },spd||22);
+  });
+}
+
+async function agentMsg(text,ok){
+  var d=document.createElement('div');d.className='msg';
+  var ac=ok?'av ok':'av ag';var al=ok?'&#10003;':'D';
+  d.innerHTML='<div class="'+ac+'">'+al+'</div><div class="bbl ag"><span class="tw2"></span></div>';
+  feed.appendChild(d);goBottom();
+  await tw(d.querySelector('.tw2'),text,22);
+  await wait(240);
+}
+
+function secLbl(t){
+  var d=document.createElement('div');d.className='sec';d.textContent=t;feed.appendChild(d);
+}
+
+/* ══ Auto-type sample query on load ══ */
+window.addEventListener('load',function(){
+  var i=0;
+  var t=setInterval(function(){
+    i++;inp.value=SAMPLE.slice(0,i);resize(inp);
+    if(i>=SAMPLE.length)clearInterval(t);
+  },30);
+});
+
+/* ══════════════════════════════════════
+   SEND & SEARCH
+══════════════════════════════════════ */
+async function send(){
+  var txt=inp.value.trim();if(!txt)return;
+  ensureAudio();
+  lock();
+  document.getElementById('prWelcome').style.display='none';
+  stEl.classList.remove('hidden');
+  showPostSend(txt);
+  userBubble(txt);
+  await wait(400);
+  await runSearch(txt);
+}
+
+var phones=[
+  {name:'Samsung Galaxy S25 Ultra',mrp:'Rs.1,34,999',price:'Rs.1,19,999',offer:'Rs.15,000 bank off + Free Galaxy Buds FE',score:97,color:'#8B1A00',tag:'BEST MATCH'},
+  {name:'iPhone 16 Pro',mrp:'Rs.1,39,900',price:'Rs.1,29,900',offer:'Rs.10,000 exchange bonus',score:88,color:'#5856D6',tag:''},
+  {name:'OnePlus 13',mrp:'Rs.69,999',price:'Rs.64,999',offer:'Rs.5,000 instant discount',score:79,color:'#C03000',tag:''},
+];
+
+async function runSearch(q){
+  setStage(1);
+  chime('scan');
+  var brief=q.length>55?q.slice(0,55)+'...':q;
+  await agentMsg('Scanning 40+ retailers for "'+brief+'" across Amazon, Flipkart, Croma, Samsung Shop, Reliance Digital...',false);
+  await wait(2800);
+  await agentMsg('Price intelligence complete. Filtered for flagship 5G phones launched within 6 months, in-stock for same-day delivery in Mumbai.',false);
+  await wait(2400);
+  setStage(2);
+  await agentMsg('Here are your top 3 matches. Tap a phone to select it, then confirm.',false);
+  await wait(500);
+
+  secLbl('PRODUCT RESULTS \u00B7 TAP TO SELECT');
+  var g=document.createElement('div');g.className='pgrid';
+  phones.forEach(function(p,i){
+    var el=document.createElement('div');el.className='pc';el.id='ph'+i;
+    el.style.animationDelay=(i*0.13)+'s';
+    el.innerHTML='<div class="sel-ring">&#10003;</div>'+(p.tag?'<div class="pc-badge">'+p.tag+'</div>':'')+
+      '<div class="pc-em">&#128241;</div><div class="pc-nm">'+p.name+'</div>'+
+      '<div class="pc-mrp">'+p.mrp+'</div><div class="pc-pr" style="color:'+p.color+'">'+p.price+'</div>'+
+      '<div class="pc-of">'+p.offer+'</div>'+
+      '<div class="sb"><div class="sf" id="ps'+i+'" style="background:'+p.color+'"></div></div>'+
+      '<div class="st">Match score: '+p.score+'/100</div>';
+    el.onclick=(function(idx){return function(){pickPhone(idx);};})(i);
+    g.appendChild(el);
+  });
+  feed.appendChild(g);
+  await wait(500);
+  phones.forEach(function(p,i){document.getElementById('ps'+i).style.width=p.score+'%';});
+  var cb=document.createElement('button');cb.className='conf-btn hidden';cb.id='pcb';cb.onclick=confirmPhone;feed.appendChild(cb);
+  goBottom();
+}
+
+function pickPhone(i){
+  selPhone=i;
+  phones.forEach(function(p,j){document.getElementById('ph'+j).classList.toggle('sel',j===i);});
+  chime('phonePick');
+  var cb=document.getElementById('pcb');cb.classList.remove('hidden');
+  cb.textContent='Confirm \u2014 '+phones[i].name+' \u2192';
+  goBottom();
+}
+
+async function confirmPhone(){
+  document.getElementById('pcb').disabled=true;
+  phones.forEach(function(p,j){if(j!==selPhone)document.getElementById('ph'+j).style.opacity='0.32';});
+  userBubble('I will go with the '+phones[selPhone].name);
+  await wait(500);await runCard();
+}
+
+/* ══════════════════════════════════════
+   CARD COMPARISON
+══════════════════════════════════════ */
+var ccards=[
+  {id:'hdfc',label:'NEW CARD',bank:'HDFC Bank',name:'HDFC Regalia Gold',isNew:true,color:'#C9A84C',
+   rows:[{l:'Reward pts',v:'4 pts/Rs.150',vc:'#C9A84C'},{l:'Redemption',v:'Rs.0.50/pt',vc:'#C9A84C'},{l:'Eff. return',v:'~1.3% + 5%',vc:'#00875A'},{l:'Bank offer',v:'Yes \u2713',vc:'#00875A'},{l:'Total benefit',v:'Rs.21,560',vc:'#1C2B4A'}],
+   total:'Rs.21,560',tc:'#C9A84C',tbg:'#FFF9EC'},
+  {id:'icici',label:'YOU OWN THIS',bank:'ICICI Bank',name:'ICICI Amazon Pay',isNew:false,color:'#FF6B00',
+   rows:[{l:'Reward pts',v:'2% Amazon Pay',vc:'#FF6B00'},{l:'Redemption',v:'Re.1/point',vc:'#FF6B00'},{l:'Eff. return',v:'2.0%',vc:'#FF6B00'},{l:'Bank offer',v:'Yes \u2713',vc:'#00875A'},{l:'Total benefit',v:'Rs.17,400',vc:'#1C2B4A'}],
+   total:'Rs.17,400',tc:'#FF6B00',tbg:'#FFF5EE'},
+  {id:'axis',label:'YOU OWN THIS',bank:'Axis Bank',name:'Axis Atlas',isNew:false,color:'#0066FF',
+   rows:[{l:'Reward pts',v:'2 Miles/Rs.100',vc:'#0066FF'},{l:'Redemption',v:'~Rs.0.25/mile',vc:'#8FA3C0'},{l:'Eff. return',v:'~0.5%',vc:'#C03000'},{l:'Bank offer',v:'No \u2717',vc:'#C03000'},{l:'Total benefit',v:'Rs.600',vc:'#1C2B4A'}],
+   total:'Rs.600',tc:'#0066FF',tbg:'#F5F7FA'},
+];
+
+async function runCard(){
+  setStage(3);
+  chime('cardReveal');
+  await agentMsg('Analysing your payment options. Comparing your 2 existing cards against a new card you can get as an instant virtual card in under 60 seconds.',false);
+  await wait(2600);
+  await agentMsg('Key insight: HDFC Regalia Gold earns 4 reward points per Rs.150, redeemable at Rs.0.50 each \u2014 far better than Axis Atlas miles at Rs.0.25 each. And it activates the Rs.15,000 bank offer. Full comparison:',false);
+  await wait(2600);
+
+  secLbl('PAYMENT OPTIONS \u00B7 COMPARE & CHOOSE');
+  var w=document.createElement('div');w.className='card3-grid';
+  ccards.forEach(function(c,i){
+    var el=document.createElement('div');
+    el.className='ccard'+(c.isNew?' ncs':'');el.id='cc'+i;el.style.animationDelay=(i*0.13)+'s';
+    var badge=c.isNew?'<div class="top-badge tbg">BEST RETURN</div>':'';
+    var rowsH=c.rows.map(function(r){return '<div class="ccard-row"><span class="ccard-rl">'+r.l+'</span><span class="ccard-rv" style="color:'+r.vc+'">'+r.v+'</span></div>';}).join('');
+    var newTag=c.isNew?'<div style="display:inline-block;background:#C9A84C;color:#3A2000;font-size:8px;font-weight:700;padding:2px 7px;border-radius:8px;margin-bottom:5px;margin-top:2px">APPLY INSTANTLY</div>':'';
+    var tagStyle=c.isNew?'background:#FFF4E0;color:#8A5A00;border:1px solid #E8C060':'background:#EAF0FF;color:#0044AA;border:1px solid #B8CEFF';
+    el.innerHTML=badge+'<div class="ccard-type" style="'+tagStyle+'">'+c.label+'</div>'+newTag+
+      '<div class="ccard-bank">'+c.bank+'</div><div class="ccard-name">'+c.name+'</div>'+
+      '<div>'+rowsH+'</div>'+
+      '<div class="ccard-total" style="background:'+c.tbg+'"><div class="ccard-tl">TOTAL BENEFIT</div><div class="ccard-tv" style="color:'+c.tc+'">'+c.total+'</div></div>';
+    el.onclick=(function(idx){return function(){pickCard(idx);};})(i);
+    w.appendChild(el);
+  });
+  feed.appendChild(w);
+  var cb2=document.createElement('button');cb2.className='conf-btn hidden';cb2.id='ccb';cb2.onclick=confirmCard;feed.appendChild(cb2);
+  await wait(800);
+  await agentMsg('HDFC Regalia Gold leads at Rs.21,560 in total benefit \u2014 Rs.4,160 more than ICICI and Rs.20,960 more than Axis Atlas. Tap your choice.',false);
+  goBottom();
+}
+
+function pickCard(i){
+  selCardIdx=i;
+  ccards.forEach(function(c,j){
+    var el=document.getElementById('cc'+j);el.classList.toggle('sel',j===i);
+  });
+  chime('cardPick');
+  var cb=document.getElementById('ccb');cb.classList.remove('hidden');
+  var lbl=ccards[i].isNew?'Apply for '+ccards[i].name+' & Pay \u2192':'Pay with '+ccards[i].name+' \u2192';
+  cb.textContent=lbl;goBottom();
+}
+
+async function confirmCard(){
+  document.getElementById('ccb').disabled=true;
+  ccards.forEach(function(c,j){if(j!==selCardIdx)document.getElementById('cc'+j).style.opacity='0.32';});
+  var chosen=ccards[selCardIdx];
+  userBubble(chosen.isNew?'Apply for '+chosen.name+' and use it':'Use my '+chosen.name);
+  await wait(500);
+  if(chosen.isNew){await runApply();}else{await runOTP();}
+}
+
+/* ══════════════════════════════════════
+   INSTANT CARD APPLICATION
+══════════════════════════════════════ */
+async function runApply(){
+  setStage(4);
+  await agentMsg('Applying for HDFC Regalia Gold now. Running eligibility check...',false);
+  await wait(700);
+  secLbl('INSTANT CARD ISSUANCE \u00B7 HDFC REGALIA GOLD');
+  var steps=[{label:'Bureau & Credit Check',detail:'CIBIL 784 \u00B7 Pre-approved'},{label:'KYC Verification',detail:'Aadhaar + PAN \u00B7 Verified'},{label:'Virtual Card Generation',detail:'Card number issued'}];
+  var sw=document.createElement('div');sw.style.marginBottom='16px';
+  steps.forEach(function(s,i){
+    var row=document.createElement('div');row.className='astep dim';row.id='as'+i;
+    row.innerHTML='<div class="dot" id="dot'+i+'"><span style="color:#C0CCDA">&#9711;</span></div>'+
+      '<div><div class="dl">'+s.label+'</div><div class="ds">'+s.detail+'</div></div>';
+    sw.appendChild(row);
+  });
+  feed.appendChild(sw);
+  var vcSlot=document.createElement('div');feed.appendChild(vcSlot);
+
+  for(var i=0;i<3;i++){
+    document.getElementById('as'+i).classList.remove('dim');
+    var dot=document.getElementById('dot'+i);
+    dot.className='dot active';
+    dot.innerHTML='<span style="display:block;animation:spin 1s linear infinite;color:#8B1A00;font-size:14px">&#9675;</span>';
+    goBottom();await wait(2000);
+    dot.className='dot done';dot.innerHTML='&#10003;';
+  }
+
+  chime('cardIssued');
+  await agentMsg('All checks passed \u2014 CIBIL 784 \u2713  KYC verified \u2713  Income confirmed \u2713. Generating virtual card...',true);
+  await wait(1800);
+
+  vcSlot.innerHTML='<div class="vcard-outer"><div class="vcard"><div class="vcard-glow"></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:14px">'+
+    '<div class="vc-bank">HDFC BANK</div><div style="font-size:18px;color:#C9A84C">&#9830;</div></div>'+
+    '<div class="vc-num">4532 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 7891</div>'+
+    '<div class="vc-bot"><div><div class="vc-fl">CARD HOLDER</div><div class="vc-fv">VIJAY</div></div>'+
+    '<div style="text-align:right"><div class="vc-fl">VALID THRU</div><div class="vc-fv" style="font-family:\'JetBrains Mono\',monospace">04/29</div></div>'+
+    '<div style="font-size:22px;color:#C9A84C;opacity:0.88">&#11042;&#11042;</div></div>'+
+    '<div class="vc-bar"></div></div></div>';
+  goBottom();
+  await wait(1600);
+  await agentMsg('Virtual card &bull;&bull;&bull;&bull; 7891 is live. Limit: Rs.3,00,000. Proceeding to payment authentication.',true);
+  await wait(1600);
+  await runOTP();
+}
+
+/* ══════════════════════════════════════
+   OTP / 2FA
+══════════════════════════════════════ */
+async function runOTP(){
+  if(!ccards[selCardIdx].isNew)setStage(4);
+  await agentMsg('Redirecting to Mastercard SecureCode for 2-factor authentication...',false);
+  await wait(2000);
+  secLbl('PAYMENT VERIFICATION \u00B7 MASTERCARD SECURECODE\u2122');
+  var oc=document.createElement('div');oc.className='otp-card';oc.id='otpCard';
+  var boxes='';for(var b=0;b<6;b++)boxes+='<input class="otp-box" id="ob'+b+'" maxlength="1" inputmode="numeric" type="tel">';
+  oc.innerHTML='<div class="otp-hdr"><div style="display:flex;align-items:center"><div class="mc-r"></div><div class="mc-y"></div></div>'+
+    '<div style="margin-left:10px"><div class="otp-ht">Mastercard SecureCode&#8482;</div><div class="otp-hs">3D Secure 2.0 Authentication</div></div></div>'+
+    '<div class="otp-body"><div class="otp-merch"><div><div class="otp-ml">MERCHANT</div><div class="otp-mv">Samsung Shop India</div></div>'+
+    '<div style="text-align:right"><div class="otp-ml">AMOUNT</div><div class="otp-mv">Rs.1,19,999</div></div></div>'+
+    '<div class="otp-info">A One-Time Password has been sent to your mobile number <strong>&bull;&bull;&bull;&bull;&bull;&bull;7823</strong>. Enter it below to authorise this payment.</div>'+
+    '<div class="otp-fields">'+boxes+'</div>'+
+    '<div class="otp-hint">Did not receive it? <a href="#" onclick="return false">Resend in 0:28</a></div>'+
+    '<button class="otp-sub" id="osub" onclick="verify()" disabled>Verify &amp; Pay &#8594;</button></div>'+
+    '<div class="otp-foot"><span style="font-size:13px">&#128274;</span><span class="otp-fl">256-bit SSL &middot; PCI DSS Compliant</span>'+
+    '<div class="mc-badge"><div style="display:flex;align-items:center"><div style="width:11px;height:11px;border-radius:50%;background:#EB001B"></div><div style="width:11px;height:11px;border-radius:50%;background:#F79E1B;margin-left:-4px;opacity:0.95"></div></div>&nbsp;SecureCode</div></div>';
+  feed.appendChild(oc);goBottom();
+  for(var b2=0;b2<6;b2++){
+    (function(idx){
+      var box=document.getElementById('ob'+idx);
+      box.addEventListener('input',function(){otpIn(box,idx);});
+      box.addEventListener('keydown',function(e){otpKey(e,idx);});
+    })(b2);
+  }
+  await wait(300);document.getElementById('ob0').focus();
+}
+
+function otpIn(el,idx){
+  el.value=el.value.replace(/[^0-9]/g,'');
+  el.classList.toggle('filled',!!el.value);
+  if(el.value&&idx<5)document.getElementById('ob'+(idx+1)).focus();
+  var full=true;
+  for(var i=0;i<6;i++){if(!document.getElementById('ob'+i).value){full=false;break;}}
+  document.getElementById('osub').disabled=!full;
+}
+function otpKey(e,idx){
+  if(e.key==='Backspace'&&!document.getElementById('ob'+idx).value&&idx>0)
+    document.getElementById('ob'+(idx-1)).focus();
+}
+
+async function verify(){
+  var sub=document.getElementById('osub');
+  sub.disabled=true;sub.textContent='Verifying...';
+  for(var i=0;i<6;i++)document.getElementById('ob'+i).disabled=true;
+  await wait(1800);
+  chime('otpOk');
+  sub.textContent='\u2713 Verified \u2014 Payment Authorised';
+  sub.style.background='linear-gradient(135deg,#00875A,#006644)';
+  await wait(1100);await runCheckout();
+}
+
+/* ══════════════════════════════════════
+   CHECKOUT
+══════════════════════════════════════ */
+async function runCheckout(){
+  setStage(5);
+  var isNew=ccards[selCardIdx]&&ccards[selCardIdx].isNew;
+  await agentMsg('Payment authenticated. Placing order on Samsung Shop \u2014 locking in official warranty and best price. Stacking all offers...',false);
+  await wait(2500);
+  secLbl('ORDER SUMMARY \u00B7 SAMSUNG SHOP');
+  var finalPaid=isNew?'Rs.1,13,999':'Rs.1,15,599';
+  var totalSaved=isNew?'Rs.20,999':'Rs.19,400';
+  var pct=isNew?'15.7%':'14.4%';
+  var cardBenefit=isNew?'5% HDFC electronics offer':'2% cashback \u2014 ICICI Amazon Pay';
+  var cardBenefitVal=isNew?'\u2212 Rs.5,440':'\u2212 Rs.2,400';
+  var cardColor=isNew?'#C9A84C':'#FF6B00';
+
+  var rows=[
+    {l:'Samsung Galaxy S25 Ultra (MRP)',v:'Rs.1,34,999',c:'#1C2B4A'},
+    {l:'Bank offer \u2014 Electronics',v:'\u2212 Rs.15,000',c:'#00875A'},
+    {l:'Coupon: DHURDEAL',v:'\u2212 Rs.2,000',c:'#00875A'},
+    {l:cardBenefit,v:cardBenefitVal,c:cardColor},
+  ];
+  var rw=document.createElement('div');rw.style.marginBottom='18px';
+  rows.forEach(function(r,i){
+    var row=document.createElement('div');row.className='crow';row.id='cr'+i;row.style.opacity='0';
+    row.innerHTML='<span class="cl">'+r.l+'</span><span class="cv" style="color:'+r.c+'">'+r.v+'</span>';
+    rw.appendChild(row);
+  });
+  feed.appendChild(rw);
+  for(var i=0;i<4;i++){await wait(1100);document.getElementById('cr'+i).style.opacity='1';goBottom();}
+  await wait(800);
+  chime('complete');
+  await agentMsg('Order confirmed! Samsung Galaxy S25 Ultra delivers to your Mumbai address tomorrow. You saved '+totalSaved+' in total \u2014 '+pct+' off the walk-in price. Mission accomplished. \uD83C\uDF89',true);
+  await wait(600);
+
+  var cbkStat=isNew?'Rs.560 pts + 5% offer':'Rs.2,400 cashback';
+  var cbkColor=isNew?'#C9A84C':'#FF6B00';
+  var sum=document.createElement('div');sum.className='summary';
+  sum.innerHTML='<div class="sum-h"><div class="sum-ck">&#10003;</div>'+
+    '<div><div class="sum-t">Mission Accomplished</div><div class="sum-s">Samsung Galaxy S25 Ultra \u00B7 Delivering tomorrow</div></div></div>'+
+    '<div class="stats">'+
+    '<div class="stat"><div class="sl">YOU PAID</div><div class="sv" style="color:#1C2B4A">'+finalPaid+'</div></div>'+
+    '<div class="stat"><div class="sl">YOU SAVED</div><div class="sv" style="color:#00875A">'+totalSaved+'</div></div>'+
+    '<div class="stat"><div class="sl">CARD BENEFIT</div><div class="sv" style="color:'+cbkColor+'">'+cbkStat+'</div></div>'+
+    '</div><div class="tot"><span class="tl">Total benefit vs. walk-in price</span><span class="tv">'+totalSaved+' \u00B7 '+pct+' off</span></div>';
+  feed.appendChild(sum);goBottom();
+}
+</script>
+</body>
+</html>
